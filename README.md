@@ -1,10 +1,21 @@
 # Pretalx Conference Suite
 
-Pll and mangel data from pretalx to interact with other services.
+Provide a simple interface to pretalx for:
+- submissions
+- speaker
+- reviews
+- handling of custom questions
+
+While keeping private data private.
+
+
+Pull and mangle data from pretalx to interact with other services.
 
 
 ## Use cases
 
+* Share a json to generate a website with sessions
+* Get speaker info to send tickets automatically via another platform 
 
 ## Benefits
 
