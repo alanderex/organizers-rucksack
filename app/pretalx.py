@@ -1,8 +1,10 @@
 import json
+from json import JSONDecodeError
 from pathlib import Path
 
 import omegaconf
 import requests
+import yaml
 
 
 class PretalxAPI:
@@ -17,10 +19,6 @@ class PretalxAPI:
         """
         self.__config = config
         self.section_name = section_name
-        # self.submissions = self._url_constructor("submissions")
-        # self.speakers = self._url_constructor("speakers")
-        # self.questions = self._url_constructor("questions")
-        # self.answers = self._url_constructor("answers")
 
     def _url_constructor(self, ep):
         return f"{self.__config.pretalx.base_url}/api/events/{self.__config.pretalx_event_slug}/{ep}/"
@@ -81,7 +79,7 @@ class Section:
         self.api = PretalxAPI(section_name, config)
 
     def load(self):
-        with self._to_full_path(self.config.raw_path).open("w") as f:
+        with self._to_full_path(self.config.raw_path).open("r") as f:
             self.data = json.load(f)
 
     def save_to_json(self):
@@ -105,7 +103,7 @@ class Section:
         if not self._data:
             try:
                 self.load()
-            except FileNotFoundError:
+            except (FileNotFoundError, JSONDecodeError):
                 self.refresh()
         return self._data
 
@@ -169,19 +167,54 @@ class Pretalx:
         with self._to_full_path(self.data_path / "submission_types.txt").open("w") as f:
             f.write("\n".join(self.submission_types))
 
+    def save_questions_to_yaml(self):
+        """
+        Write questions to a yaml file for readability
+        Nodes selected are opt-in in project config.yml:
+            pretalx.questions.select_nodes
+        :return:
+        """
+
+        to_yaml = []
+        for entry in self.questions.data:
+            new_dict = {}
+            for node in self.config.pretalx.questions.select_nodes:
+                new_dict[node] = self.get_from_lang_tag(entry[node])
+            to_yaml.append(new_dict)
+
+        with self._to_full_path(self.data_path / "questions.yml").open("w") as f:
+            yaml.dump({x["question"]: x for x in to_yaml}, f)
+
+    def get_from_lang_tag(self, value):
+        try:
+            if isinstance(value, list):
+                if value:
+                    value = [self.get_from_lang_tag(x) for x in value]
+            elif isinstance(value, dict):
+                if value:
+                    for k, v in value.items():
+                        if k == self.config.pretalx.language:
+                            return v
+                    value = {k: self.get_from_lang_tag(v) for k, v in value.items()}
+            else:
+                value = value[self.config.pretalx.language]
+        except (KeyError, TypeError, AttributeError):
+            pass
+        return value
+
     def refresh_all(self):
         """
         Load all data from pretalx
         Save value lists to file as well for orientation
         :return:
         """
-        self.speakers.refresh()
-        self.submissions.refresh()
-        self.answers.refresh()
-        self.questions.refresh()
+        for section in self.sections:
+            getattr(self, section).refresh()
+
         self.save_track_names_to_file()
         self.save_submission_states_to_file()
         self.save_submission_types_to_file()
+        self.save_questions_to_yaml()
 
     @property
     def track_names(self) -> list:
@@ -214,4 +247,4 @@ class Pretalx:
         return self._filter_state(self.config.pretalx.confirmed)
 
     def _filter_state(self, state):
-        return [x for x in self.submissions.data if x["state"] in self.config.pretalx.confirmed_accepted]
+        return [x for x in self.submissions.data if x[state] in self.config.pretalx.confirmed_accepted]

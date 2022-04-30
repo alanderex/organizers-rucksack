@@ -9,7 +9,6 @@ if __name__ == "__main__":
     CONF = OmegaConf.merge(BASE_CONF, OmegaConf.load(this_module / "config.yml"))
 
     p = Pretalx(CONF, this_module)
-    p.refresh_all()
-    # p.refresh_speakers_from_pretalx()
-    # p.refresh_submissions_from_pretalx()
+    # p.refresh_all()
+    p.save_questions_to_yaml()
     a = 99

@@ -9,3 +9,13 @@ pretalx_event_slug: europython-2022
 # Conference Settings
 conference_name: "EuroPython 2022"
 program_addy: program-wg@europython.eu
+
+
+pretalx:
+  questions:
+    # list all relevant nodes for processing questions here
+    select_nodes:
+      - question
+      - id
+      - contains_personal_data
+      - options
