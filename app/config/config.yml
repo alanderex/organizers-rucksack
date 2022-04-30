@@ -45,3 +45,5 @@ pretalx:
   token: unset
   token_dir: ${private_path}
   token_file_name: TOKEN.txt
+  # language to read in, pretalx supports multiple, we only handle one here
+  langauge: en

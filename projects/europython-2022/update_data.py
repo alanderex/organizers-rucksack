@@ -14,5 +14,7 @@ if __name__ == "__main__":
     (this_module / BASE_CONF.public_path).resolve().mkdir(exist_ok=True)
 
     p = Pretalx(CONF, this_module)
-    p.refresh_submissions_from_pretalx()
+    # p.refresh_submissions_from_pretalx()
+    # p.refresh_speakers_from_pretalx()
+    p.all_tracks()
     a = 99

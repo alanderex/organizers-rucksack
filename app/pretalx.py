@@ -5,8 +5,6 @@ from typing import List
 import requests
 import omegaconf
 
-from app.config import project_root
-
 
 class Pretalx:
 
@@ -68,6 +66,11 @@ class Pretalx:
             submissions.extend(self.get_all_data_from_pretalx(self.submissions_url, params={"state": "confirmed"}))
         self.save_submissions_raw_to_file(submissions)
 
+    def refresh_speakers_from_pretalx(self):
+        speakers = self.get_all_data_from_pretalx(self.speakers_url)
+        self.save_speakers_raw_to_file(speakers)
+        return speakers
+
     def _to_full_path(self, fpath) -> Path:
         """ helper returning a full Path to the file """
         return self.project_root / fpath
@@ -107,3 +110,9 @@ class Pretalx:
         with self._to_full_path(self.config.speakers.path).open() as f:
             speakers = json.load(f)
         return speakers
+
+    @property
+    def all_tracks(self):
+        submissions = self.load_submissions_raw_from_file()
+        tracks = 44
+        return tracks
