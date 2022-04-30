@@ -10,8 +10,9 @@ from app.config import project_root
 
 class Pretalx:
 
-    def __init__(self, config: omegaconf.dictconfig.DictConfig):
+    def __init__(self, config: omegaconf.dictconfig.DictConfig, project_root: Path):
         self.config = config
+        self.project_root = project_root
 
     @property
     def submissions_url(self):
@@ -54,7 +55,7 @@ class Pretalx:
             api_result.extend(chunk)
         return api_result
 
-    def refresh_submissions_from_pretalx(self, accepted_only=True):
+    def refresh_submissions_from_pretalx(self, accepted_only=False):
         """
         Load submissions from pretalx API, store to JSON
         :param accepted_only:
@@ -67,9 +68,9 @@ class Pretalx:
             submissions.extend(self.get_all_data_from_pretalx(self.submissions_url, params={"state": "confirmed"}))
         self.save_submissions_raw_to_file(submissions)
 
-    @classmethod
-    def _to_full_path(cls, path) -> Path:
-        return project_root / path
+    def _to_full_path(self, fpath) -> Path:
+        """ helper returning a full Path to the file """
+        return self.project_root / fpath
 
     def save_submissions_to_file(self, submissions):
         with self._to_full_path(self.config.submissions.path).open("w") as f:
