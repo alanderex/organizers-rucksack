@@ -1,11 +1,16 @@
+import json
+from pathlib import Path
 from typing import List
 
 import requests
 import omegaconf
 
+from app.config import project_root
+
 
 class Pretalx:
-    def __int__(self, config: omegaconf.dictconfig.DictConfig):
+
+    def __init__(self, config: omegaconf.dictconfig.DictConfig):
         self.config = config
 
     @property
@@ -62,34 +67,42 @@ class Pretalx:
             submissions.extend(self.get_all_data_from_pretalx(self.submissions_url, params={"state": "confirmed"}))
         self.save_submissions_raw_to_file(submissions)
 
-    def save_submissions_to_file(submissions):
-        with submissions_path.open("w") as f:
+    @classmethod
+    def _to_full_path(cls, path) -> Path:
+        return project_root / path
+
+    def save_submissions_to_file(self, submissions):
+        with self._to_full_path(self.config.submissions.path).open("w") as f:
             json.dump(submissions, f, indent=4)
 
-    def save_submissions_raw_to_file(submissions):
-        with submissions_raw_path.open("w") as f:
+    def save_submissions_raw_to_file(self, submissions):
+        with self._to_full_path(self.config.submissions.raw_path).open("w") as f:
             json.dump(submissions, f, indent=4)
 
-    def load_submissions_raw_from_file():
-        with submissions_raw_path.open() as f:
+    def load_submissions_from_file(self):
+        with self._to_full_path(self.config.submissions.raw_path).open() as f:
             submissions = json.load(f)
         return submissions
 
-    def load_submissions_from_file():
-        with submissions_path.open() as f:
+    def load_submissions_raw_from_file(self):
+        with self._to_full_path(self.config.submissions.raw_path).open() as f:
             submissions = json.load(f)
         return submissions
 
-    def save_speakers_raw_to_file(speakers):
-        with speakers_raw_path.open("w") as f:
+    def save_speakers_raw_to_file(self, speakers):
+        with self._to_full_path(self.config.speakers.raw_path).open("w") as f:
             json.dump(speakers, f, indent=4)
 
-    def load_speakers_raw_from_file():
-        with speakers_raw_path.open() as f:
+    def load_speakers_raw_from_file(self):
+        with self._to_full_path(self.config.speakers.raw_path).open() as f:
             speakers = json.load(f)
         return speakers
 
-    def load_speakers_from_file():
-        with speakers_path.open() as f:
+    def save_speaker_to_file(self, submissions):
+        with self._to_full_path(self.config.speakers.path).open("w") as f:
+            json.dump(submissions, f, indent=4)
+
+    def load_speakers_from_file(self):
+        with self._to_full_path(self.config.speakers.path).open() as f:
             speakers = json.load(f)
         return speakers

@@ -15,15 +15,33 @@ program_email: "program22@myconference.org"
 private_path: "_private"
 # path to store raw data not to be shared
 data_path: "_data"
+# path to store data publicly
+public_path: "public"
 
 # path to pretalx data and processed data
-submissions_json: "submissions.json"
-speakers_json: "speakers.json"
-submissions_raw_json: "submissions_raw.json"
-speakers_raw_json: "speakers_raw.json"
+submissions:
+  json: "submissions.json"
+  raw_json: "submissions_raw.json"
+  path: ${data_path}/${submissions.json}
+  raw_path: ${data_path}/${submissions.raw_json}
+  public_path: ${public_path}/${submissions.json}
+speakers:
+  json: "speakers.json"
+  raw_json: "speakers_raw.json"
+  path: ${data_path}/${speakers.json}
+  raw_path: ${data_path}/${speakers.raw_json}
+  public_path: ${public_path}/${speakers.json}
+schedule:
+  json: "schedule.json"
+  raw_json: "schedule_raw.json"
+  path: ${data_path}/${schedule.json}
+  raw_path: ${data_path}/${speakers.raw_json}
+  public_path: ${public_path}/${schedule.json}
 
 
 # Pretalx Basics
 pretalx:
   base_url: "https://pretalx.com"
   token: unset
+  token_dir: ${private_path}
+  token_file_name: TOKEN.txt
