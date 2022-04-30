@@ -18,25 +18,47 @@ data_path: "_data"
 # path to store data publicly
 public_path: "public"
 
-# path to pretalx data and processed data
+# path to pretalx data and processed data for each section
 submissions:
-  json: "submissions.json"
-  raw_json: "submissions_raw.json"
+  api_section: true
+  endpoint: submissions
+  json: ${submissions.endpoint}.json
+  raw_json: ${submissions.endpoint}_raw.json
   path: ${data_path}/${submissions.json}
   raw_path: ${data_path}/${submissions.raw_json}
   public_path: ${public_path}/${submissions.json}
 speakers:
-  json: "speakers.json"
-  raw_json: "speakers_raw.json"
+  api_section: true
+  endpoint: speakers
+  json: ${speakers.endpoint}.json
+  raw_json: ${speakers.endpoint}_raw.json
   path: ${data_path}/${speakers.json}
   raw_path: ${data_path}/${speakers.raw_json}
   public_path: ${public_path}/${speakers.json}
 schedule:
-  json: "schedule.json"
-  raw_json: "schedule_raw.json"
+  api_section: true
+  endpoint: schedule
+  json: ${schedule.endpoint}.json
+  raw_json: ${schedule.endpoint}_raw.json
   path: ${data_path}/${schedule.json}
   raw_path: ${data_path}/${speakers.raw_json}
   public_path: ${public_path}/${schedule.json}
+answers:
+  api_section: true
+  endpoint: answers
+  json: ${answers.endpoint}.json
+  raw_json: ${answers.endpoint}_raw.json
+  path: ${data_path}/${answers.json}
+  raw_path: ${data_path}/${answers.raw_json}
+  public_path: ${public_path}/${answers.json}
+questions:
+  api_section: true
+  endpoint: questions
+  json: ${questions.endpoint}.json
+  raw_json: ${questions.endpoint}_raw.json
+  path: ${data_path}/${questions.json}
+  raw_path: ${data_path}/${questions.raw_json}
+  public_path: ${public_path}/${questions.json}
 
 
 # Pretalx Basics
@@ -46,4 +68,10 @@ pretalx:
   token_dir: ${private_path}
   token_file_name: TOKEN.txt
   # language to read in, pretalx supports multiple, we only handle one here
-  langauge: en
+  language: en
+  # states relevant for speaking
+  confirmed_accepted:
+    - confirmed
+    - accepted
+  confirmed: confirmed
+  accepted: accepted
