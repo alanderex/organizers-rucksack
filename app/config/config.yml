@@ -1,0 +1,29 @@
+# Configuration for Project = Conference
+
+# Project name, same as directory
+name: my-conference
+
+# Event name in pretalx
+pretalx_event_slug: my-conference-slug
+
+# Conference Settings
+conference_name: "My Conference"
+program_email: "program22@myconference.org"
+
+# Setup
+# path to private stuff as tokens
+private_path: "_private"
+# path to store raw data not to be shared
+data_path: "_data"
+
+# path to pretalx data and processed data
+submissions_json: "submissions.json"
+speakers_json: "speakers.json"
+submissions_raw_json: "submissions_raw.json"
+speakers_raw_json: "speakers_raw.json"
+
+
+# Pretalx Basics
+pretalx:
+  base_url: "https://pretalx.com"
+  token: unset

@@ -1,0 +1,41 @@
+[project]
+name = "pyconference_pretalx"
+version = " 0.1.0"
+requires-python = ">=3.10"
+
+
+[tool.pytest.ini_options]
+minversion = "6.2"
+testpaths = [
+    "tests",
+]
+
+
+[tool.black]
+line-length = 120
+target-version = ['py37']
+
+
+[build-system]
+requires = [
+    "setuptools>=57",
+    "wheel",
+    "pip",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+dependencies = [
+    "structlog >= 21.1, < 22",
+    "omegaconf >= 2.0, < 3",
+]
+
+[project.optional-dependencies]
+tests = [
+  'pytest >=6.2, < 7',
+]
+
+[python]
+requires = [
+">=3.7"
+]
