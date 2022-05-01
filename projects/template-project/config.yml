@@ -1,14 +1,14 @@
 # Configuration for Project = Conference
 
 # Project name, same as directory
-name: europython-2022
+name: my-conference
 
 # Event slug in pretalx
-pretalx_event_slug: europython-2022
+pretalx_event_slug: my-conference-slug
 
 # Conference Settings
-conference_name: "EuroPython 2022"
-program_addy: program-wg@europython.eu
+conference_name: "My Conference 3000"
+program_addy: programg@myconference.eu
 
 
 pretalx:

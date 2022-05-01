@@ -1,10 +1,10 @@
 # Configuration for Project = Conference
 
 # Project name, same as directory
-name: my-conference
+name: unset-conference-name
 
 # Event name in pretalx
-pretalx_event_slug: my-conference-slug
+pretalx_event_slug: unset-conference-slug
 
 # Conference Settings
 conference_name: "My Conference"
@@ -18,47 +18,87 @@ data_path: "_data"
 # path to store data publicly
 public_path: "public"
 
-# path to pretalx data and processed data for each section
+# path to pretalx data and processed data for each api section
 submissions:
+  # api_section: bool if true calls to an api endpoints will be made
   api_section: true
-  endpoint: submissions
-  json: ${submissions.endpoint}.json
-  raw_json: ${submissions.endpoint}_raw.json
-  path: ${data_path}/${submissions.json}
-  raw_path: ${data_path}/${submissions.raw_json}
-  public_path: ${public_path}/${submissions.json}
+  # name: used as base name for files
+  name: submissions
+  # endpoint: by convention same as the name, can be customized if needed
+  endpoint: ${.name}
+  # file to store json data received & processed
+  json: ${.name}.json
+  # file to store json data as received from API
+  raw_json: ${.name}_raw.json
+  # store json data here
+  path: ${data_path}/${.json}
+  # store json raw data here
+  raw_path: ${data_path}/${.raw_json}
+  # path to public json after preprocessing within project, must not contain private of confidential data
+  public_path: ${public_path}/${.json}
 speakers:
   api_section: true
-  endpoint: speakers
-  json: ${speakers.endpoint}.json
-  raw_json: ${speakers.endpoint}_raw.json
-  path: ${data_path}/${speakers.json}
-  raw_path: ${data_path}/${speakers.raw_json}
-  public_path: ${public_path}/${speakers.json}
-schedule:
-  api_section: true
-  endpoint: schedule
-  json: ${schedule.endpoint}.json
-  raw_json: ${schedule.endpoint}_raw.json
-  path: ${data_path}/${schedule.json}
-  raw_path: ${data_path}/${speakers.raw_json}
-  public_path: ${public_path}/${schedule.json}
+  name: speakers
+  endpoint: ${.name}
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
 answers:
   api_section: true
-  endpoint: answers
-  json: ${answers.endpoint}.json
-  raw_json: ${answers.endpoint}_raw.json
-  path: ${data_path}/${answers.json}
-  raw_path: ${data_path}/${answers.raw_json}
-  public_path: ${public_path}/${answers.json}
+  name: answers
+  endpoint: ${.name}
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
 questions:
   api_section: true
-  endpoint: questions
-  json: ${questions.endpoint}.json
-  raw_json: ${questions.endpoint}_raw.json
-  path: ${data_path}/${questions.json}
-  raw_path: ${data_path}/${questions.raw_json}
-  public_path: ${public_path}/${questions.json}
+  name: questions
+  endpoint: ${.name}
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
+reviews:
+  api_section: true
+  name: reviews
+  endpoint: ${.name}
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
+talks:
+  api_section: true
+  name: talks
+  endpoint: ${.name}
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
+tags:
+  api_section: true
+  name: tags
+  endpoint: ${.name}
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
+
+
+schedule:
+  name: schedule
+  json: ${.name}.json
+  raw_json: ${.name}_raw.json
+  path: ${data_path}/${.json}
+  raw_path: ${data_path}/${.raw_json}
+  public_path: ${public_path}/${.json}
 
 
 # Pretalx Basics
@@ -69,9 +109,24 @@ pretalx:
   token_file_name: TOKEN.txt
   # language to read in, pretalx supports multiple, we only handle one here
   language: en
-  # states relevant for speaking
+  # states relevant for speaking, this is just to make interactions more convenient with dot-notation
   confirmed_accepted:
     - confirmed
     - accepted
   confirmed: confirmed
   accepted: accepted
+  #
+  questions:
+    # For a better overview, questions are prepared in a YAML file.
+    # Here all fields are listed that are to be included in the YAML file (opt-in, others are ignored).
+    select_nodes:
+      - question
+      - id
+      - contains_personal_data
+      - options
+
+# Logger
+logger:
+  # options for timestamps
+  use_utc: false
+  time_fmt: iso

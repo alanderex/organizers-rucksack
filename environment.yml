@@ -12,3 +12,7 @@ dependencies:
   - pip=22
   - omegaconf=2.1
   - requests=2
+  # logging
+  - structlog=21.5
+  # for coloring console logs
+  - colorama

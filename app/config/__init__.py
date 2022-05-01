@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import OmegaConf
+
 
 project_root = Path(__file__).resolve().parents[2]
 this_module = Path(__file__).parent

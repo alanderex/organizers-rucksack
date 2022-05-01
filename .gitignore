@@ -2,6 +2,7 @@
 
 _private
 _data
+_log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

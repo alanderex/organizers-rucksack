@@ -3,6 +3,15 @@ name = "pyconference_pretalx"
 version = " 0.1.0"
 requires-python = ">=3.10"
 
+dependencies = [
+    "structlog >= 21.1, < 22",
+    "omegaconf >= 2.0, < 3",
+]
+
+[project.optional-dependencies]
+tests = [
+  'pytest >=6.2, < 7',
+]
 
 [tool.pytest.ini_options]
 minversion = "6.2"
@@ -24,16 +33,7 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[project]
-dependencies = [
-    "structlog >= 21.1, < 22",
-    "omegaconf >= 2.0, < 3",
-]
 
-[project.optional-dependencies]
-tests = [
-  'pytest >=6.2, < 7',
-]
 
 [python]
 requires = [
