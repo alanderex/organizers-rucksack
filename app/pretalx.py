@@ -102,11 +102,12 @@ class Section:
 
     def save_to_json(self):
         with self._to_full_path(self.config.raw_path).open("w") as f:
-            json.dump(self.data, f, indent=4)
+            json.dump(self._data, f, indent=4)
 
     def refresh(self):
-        self.data = self.api.get_all_data_from_pretalx(self.api.url)
-        self.save_to_json()
+        self._data = self.api.get_all_data_from_pretalx(self.api.url)
+        if self._data:  # do not use setter here, might result in endless recursion
+            self.save_to_json()
 
     def _to_full_path(self, fpath) -> Path:
         """helper returning a full Path to the file"""
