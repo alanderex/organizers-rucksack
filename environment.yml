@@ -16,3 +16,5 @@ dependencies:
   - structlog=21.5
   # for coloring console logs
   - colorama
+  # if dropbox is used for sync:
+  - dropbox

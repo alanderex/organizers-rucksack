@@ -130,3 +130,12 @@ logger:
   # options for timestamps
   use_utc: false
   time_fmt: iso
+
+# Dropbox
+dropbox:
+  token: unset
+  token_dir: ${private_path}
+  token_file_name: dropbox.txt
+  # path to local video downloads
+  video_download: null
+

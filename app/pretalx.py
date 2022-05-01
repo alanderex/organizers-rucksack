@@ -1,3 +1,4 @@
+import collections
 import inspect
 import json
 from json import JSONDecodeError
@@ -6,10 +7,9 @@ from pathlib import Path
 import omegaconf
 import requests
 import yaml
-from omegaconf import OmegaConf
 
-from app.config import BASE_CONF
 from app.helpers import log
+from app.load_config import LoadConfig
 
 
 class PretalxAPI:
@@ -51,12 +51,18 @@ class PretalxAPI:
         :return: results and next url (if any)
         """
         params = {} if not params else params
-        log.debug(f"loading {self.section_name}{'' if call_no is None else f' #' + str(call_no)} data from pretalx API with params", **params)
+        log.debug(
+            f"loading {self.section_name}{'' if call_no is None else f' #' + str(call_no)} data from pretalx API with params",
+            **params,
+        )
         if not params:
             params = {}
         res = requests.get(url, headers=self.pretalx_headers, params=params)
         res_json = res.json()
-        log.debug(f"loaded {self.section_name}{'' if call_no is None else f' #' + str(call_no)} data from pretalx API with params", **params)
+        log.debug(
+            f"loaded {self.section_name}{'' if call_no is None else f' #' + str(call_no)} data from pretalx API with params",
+            **params,
+        )
         return res_json["results"], res_json["next"]
 
     def get_all_data_from_pretalx(self, url, params=None) -> list:
@@ -142,18 +148,11 @@ class Pretalx:
         :param project_config_path: explicit Path otherwise it will be located following conventions automatically
         :param project_dir: explicit Path or otherwise it will be located following conventions automatically
         """
-        log.debug(
-            f"launching {self.__class__.__name__} with params",
-            project_config_path=f"{project_config_path}",
-            project_dir=f"{project_dir}",
-        )
         self.caller = inspect.stack()[1]  # module calling
-        log.debug(f"caller is {self.caller}")
+        config = LoadConfig(self.caller, project_config_path, project_dir)
 
-        self.project_dir = self._look_for_project_dir(project_dir)
-        self.project_config_path: Path | None = None
-        project_config_path = self._load_project_config(project_config_path)
-        self.config = OmegaConf.merge(BASE_CONF, project_config_path)
+        self.project_dir = config.project_dir
+        self.config: omegaconf.DictConfig = config.config
 
         self._create_working_dirs()
 
@@ -173,57 +172,6 @@ class Pretalx:
 
         for section in self.api_sections:
             setattr(self, section, Section(section, self.config, self.project_dir).init)
-
-    def _load_project_config(self, project_config) -> omegaconf.dictconfig.DictConfig:
-        if project_config is None:  # default in __init__
-            try:
-                project_config = self._look_for_config(self.project_dir)
-            except FileNotFoundError:
-
-                raise ValueError("Please provide the Path to the project's config.yml in `project_config`")
-        if isinstance(project_config, str):
-            project_config = Path(project_config).resolve()
-        if not isinstance(project_config, Path) or not project_config.exists():
-            raise FileNotFoundError("project's config could not be located")
-        log.debug(f"located project's config path at {project_config}")
-        self.project_config_path = project_config
-        config = OmegaConf.load(project_config)
-        return config
-
-    def _look_for_config(self, project_dir) -> Path:
-        """checks for the project's configuration file located at project's directory"""
-        # convention projects/project_dir/config.yml
-        default_config_path = self._look_for_project_dir(project_dir) / "config.yml"
-        if default_config_path.exists():
-            log.debug(f"located project's config path at {default_config_path}")
-            return default_config_path
-        msg = (
-            "The project's configuration file could not be located, "
-            "it should be at the project's directory named 'config.yml'"
-        )
-        log.debug(msg)
-        raise FileNotFoundError(f"{msg}")
-
-    def _look_for_project_dir(self, project_dir) -> Path:
-        """helper method to determine the project's directory along the conventions"""
-        log.debug(f"locating project_dir {project_dir if project_dir else 'by convention'}")
-        if project_dir is None:  # default in __init__
-            project_dir = Path(self.caller.filename).parent
-        if isinstance(project_dir, str):
-            project_dir = Path(project_dir).resolve()
-        if not isinstance(project_dir, Path) or not project_dir.exists():
-            msg = "project's directory could not be located"
-            log.debug(f"{msg}")
-            raise NotADirectoryError(f"{msg}")
-
-        while len(project_dir.parts) > 1:
-            if project_dir.parent.name == "projects":  # convention projects/project_dir/
-                log.debug(f"located projects directory at {project_dir}")
-                return project_dir
-            project_dir = project_dir.parent
-        msg = "the projects directory could not be located, please follow the conventions"
-        log.debug(msg)
-        raise NotADirectoryError(f"{msg} -  see set-up.")
 
     def _create_working_dirs(self):
         """
@@ -333,5 +281,9 @@ class Pretalx:
     def confirmed(self):
         return self._filter_state(self.config.pretalx.confirmed)
 
-    def _filter_state(self, state):
-        return [x for x in self.submissions.data if x[state] in self.config.pretalx.confirmed_accepted]
+    def _filter_state(self, states):
+        if isinstance(states, str):
+            states = [states]
+        if not isinstance(states, collections.abc.Sequence):
+            raise ValueError("filter states must be a sequence")
+        return [x for x in self.submissions.data if x["state"] in states]
