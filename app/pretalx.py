@@ -1,4 +1,4 @@
-import collections
+from collections.abc import Sequence
 import inspect
 import json
 from json import JSONDecodeError
@@ -8,7 +8,7 @@ import omegaconf
 import requests
 import yaml
 
-from app.helpers import log
+from app.helpers import log, slugify
 from app.load_config import LoadConfig
 
 
@@ -97,8 +97,10 @@ class Section:
         :param project_dir:
         """
         self.config = config[section_name]
+        self.section_name = section_name
         self.project_root = project_dir
         self._data = []
+        self._processed_data = []
 
         self.api = PretalxAPI(section_name, config)
 
@@ -106,9 +108,17 @@ class Section:
         with self._to_full_path(self.config.raw_path).open("r") as f:
             self.data = json.load(f)
 
+    def load_processed(self):
+        with self._to_full_path(self.config.path).open("r") as f:
+            self.processed_data = json.load(f)
+
     def save_to_json(self):
         with self._to_full_path(self.config.raw_path).open("w") as f:
             json.dump(self._data, f, indent=4)
+
+    def save_processed_to_json(self):
+        with self._to_full_path(self.config.path).open("w") as f:
+            json.dump(self._processed_data, f, indent=4)
 
     def refresh(self):
         self._data = self.api.get_all_data_from_pretalx(self.api.url)
@@ -135,6 +145,23 @@ class Section:
     @data.setter
     def data(self, value):
         self._data = value
+
+    @property
+    def processed_data(self):
+        """
+        Return data, if not in RAM load from file, fallback to load from API
+        :return:
+        """
+        if not self._processed_data:
+            try:
+                self.load_processed()
+            except (FileNotFoundError, JSONDecodeError):
+                log.info(f"{self.section_name} hasn't been processed, yet")
+        return self._processed_data
+
+    @processed_data.setter
+    def processed_data(self, value):
+        self._processed_data = value
 
     @property
     def init(self):
@@ -186,21 +213,9 @@ class Pretalx:
         self.public_path = (self.project_dir / self.config.public_path).resolve()
         self.public_path.mkdir(exist_ok=True)
 
-    def _to_full_path(self, fpath) -> Path:
+    def to_project_path(self, fpath) -> Path:
         """helper returning a full Path to the file"""
         return self.project_dir / fpath
-
-    def save_track_names_to_file(self):
-        with self._to_full_path(self.data_path / "track_names.txt").open("w") as f:
-            f.write("\n".join(self.track_names))
-
-    def save_submission_states_to_file(self):
-        with self._to_full_path(self.data_path / "submission_states.txt").open("w") as f:
-            f.write("\n".join(self.submission_states))
-
-    def save_submission_types_to_file(self):
-        with self._to_full_path(self.data_path / "submission_types.txt").open("w") as f:
-            f.write("\n".join(self.submission_types))
 
     def save_questions_to_yaml(self):
         """
@@ -217,7 +232,7 @@ class Pretalx:
                 new_dict[node] = self.get_from_lang_tag(entry[node])
             to_yaml.append(new_dict)
 
-        with self._to_full_path(self.data_path / "questions.yml").open("w") as f:
+        with self.to_project_path(self.data_path / "questions.yml").open("w") as f:
             yaml.dump({x["question"]: x for x in to_yaml}, f)
 
     def get_from_lang_tag(self, value):
@@ -251,39 +266,106 @@ class Pretalx:
         self.save_submission_types_to_file()
         self.save_questions_to_yaml()
 
+
+class PretalxSpeakers:
+    """
+    Handle speakers
+    """
+
+    def __init__(self, pretalx: Pretalx):
+        self.pretalx = pretalx
+        self.config = self.pretalx.config
+        self.data = self.pretalx.speakers.data
+
+    def speakers_for_talk(self, code):
+        pass
+
+
+class PretalxSubmissions:
+    """
+    Handle submissions
+    """
+    def __init__(self, pretalx: Pretalx):
+        self.pretalx = pretalx
+        self.config = self.pretalx.config
+        self.data = self.pretalx.submissions.data
+
     @property
     def track_names(self) -> list:
         """list of all tracks present in submissions (does not cover all options)"""
-        tracks = sorted({x["track"][self.config.pretalx.language] for x in self.submissions.data})
+        tracks = sorted({x["track"][self.config.pretalx.language] for x in self.data})
         return tracks
 
     @property
     def submission_states(self) -> list:
         """list of all states present in submissions (does not cover all options)"""
-        states = sorted({x["state"] for x in self.submissions.data})
+        states = sorted({x["state"] for x in self.data})
         return states
 
     @property
     def submission_types(self) -> list:
         """list of all submission types present in submissions (does not cover all options)"""
-        states = sorted({x["submission_type"][self.config.pretalx.language] for x in self.submissions.data})
+        states = sorted({x["submission_type"][self.config.pretalx.language] for x in self.data})
         return states
 
     @property
     def accepted_or_confirmed(self):
-        return self._filter_state(self.config.pretalx.confirmed_accepted)
+        return self._filter_state(self.config.pretalx.submissions.states.confirmed_accepted)
 
     @property
     def accepted(self):
-        return self._filter_state(self.config.pretalx.accepted)
+        return self._filter_state(self.config.pretalx.submissions.states.accepted)
 
     @property
     def confirmed(self):
-        return self._filter_state(self.config.pretalx.confirmed)
+        return self._filter_state(self.config.pretalx.submissions.states.confirmed)
 
     def _filter_state(self, states):
         if isinstance(states, str):
             states = [states]
-        if not isinstance(states, collections.abc.Sequence):
+        if not isinstance(states, Sequence):
             raise ValueError("filter states must be a sequence")
-        return [x for x in self.submissions.data if x["state"] in states]
+        return [x for x in self.data if x["state"] in states]
+
+    def save_track_names_to_file(self):
+        with self.pretalx.to_project_path(self.pretalx.data_path / "track_names.txt").open("w") as f:
+            f.write("\n".join(self.track_names))
+
+    def save_submission_states_to_file(self):
+        with self.pretalx.to_project_path(self.pretalx.data_path / "submission_states.txt").open("w") as f:
+            f.write("\n".join(self.submission_states))
+
+    def save_submission_types_to_file(self):
+        with self.pretalx.to_project_path(self.pretalx.data_path / "submission_types.txt").open("w") as f:
+            f.write("\n".join(self.submission_types))
+
+    def speaker_dict(self):
+        """
+        Returns preprocessed speaker dict id: {preprocessed: info}
+        :return:
+        """
+        _speaker_dict = {x["code"]: x for x in self.pretalx.speakers.data}
+        return _speaker_dict
+
+    def preprocess_submissions(self):
+        # add custom data
+        _speakers_dict = self.speaker_dict()
+        for submission in self.data:
+            speakers = " ".join([x.get("name") for x in submission["speakers"]])
+            try:
+                slug = slugify(
+                    f"{submission.get('track', {}).get('en', '')}-{submission['code']}-{submission['title']}-{speakers}"
+                )
+            except AttributeError as e:
+                slug = slugify(
+                    f"'{submission['code']}-{submission['title']}-{speakers}"
+                )
+                [
+                    _speakers_dict.get(y, {}).get("remote-only", False)
+                    for y in [x["code"] for x in submission["speakers"]]
+                ]
+
+            submission["speakers_names"] = speakers
+            submission["slug"] = slug
+        self.pretalx.submissions.save_processed_to_json()
+

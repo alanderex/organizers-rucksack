@@ -111,6 +111,24 @@ conda activate pyconference-pretalx
 put here: TODO
 
 Config stuff: TODO
+--- 
+## Set-Up: DropBox
+
+- sync file from directory to local directory
+- read only implemented
+
+Make sure to create app in:  
+[https://www.dropbox.com/developers/apps](https://www.dropbox.com/developers/apps)  
+The access token is short-lived! but it can be re-generated.   
+For persistent sign in use Oauth2
+
+* token auth: save token as text file with just the token and add the filename in config.yml: dropbox.token_file_name
+* for OAuth: save yaml in dropbox.credentials_file_name:
+```yaml
+app_key: APP-KEY-HERE
+app_secret: SECRET-KEY-HERE
+```
+
 
 ### Project
 

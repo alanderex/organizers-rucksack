@@ -109,12 +109,19 @@ pretalx:
   token_file_name: TOKEN.txt
   # language to read in, pretalx supports multiple, we only handle one here
   language: en
-  # states relevant for speaking, this is just to make interactions more convenient with dot-notation
-  confirmed_accepted:
-    - confirmed
-    - accepted
-  confirmed: confirmed
-  accepted: accepted
+  submissions:
+    states:
+      # states relevant for speaking, this is just to make interactions more convenient with dot-notation
+      confirmed_accepted:
+        - confirmed
+        - accepted
+      confirmed: confirmed
+      accepted: accepted
+      withdrawn_deleted:
+        - withdrawn
+        - deleted
+      submitted: submitted
+
   #
   questions:
     # For a better overview, questions are prepared in a YAML file.
@@ -135,7 +142,10 @@ logger:
 dropbox:
   token: unset
   token_dir: ${private_path}
+  # token as text file
   token_file_name: dropbox.txt
+  # credentials as yaml file
+  credentials_file_name: dropbox.yml
   # path to local video downloads
   video_download: null
 
