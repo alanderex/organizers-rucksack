@@ -1,4 +1,10 @@
-# Pretalx Conference Suite
+# Organizer's Rucksack
+
+Tools to make conference organisation easier.
+
+## Pretalx
+
+Pretalx is...
 
 Provide a simple interface to pretalx for:
 - submissions
